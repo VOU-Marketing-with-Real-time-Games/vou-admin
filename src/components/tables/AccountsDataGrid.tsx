@@ -1,21 +1,24 @@
+import React, { useEffect, useState } from "react";
 import {
   DataGrid,
   GridActionsCellItem,
   GridColDef,
   GridRowId,
   GridRowModes,
+  GridRowsProp,
   GridSlotProps,
   GridToolbarContainer,
   GridToolbarFilterButton,
   GridToolbarQuickFilter,
 } from "@mui/x-data-grid";
-import { columns as initialColumns, rows } from "./accountsData.tsx";
-import React from "react";
+import { columns as initialColumns } from "./accountsColumnsConfig.tsx";
 import Button from "@mui/material/Button";
 import { Add, Block, Cancel, Edit, Save } from "@mui/icons-material";
 import { Backdrop, Box, Modal } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import AddAccountForm from "../modals/AddAccountForm.tsx";
+import userApi from "../../api/user.api.ts";
+import { IUserRespondDto } from "../../types/user.type.ts";
 
 declare module "@mui/x-data-grid" {
   interface ToolbarPropsOverrides {
@@ -23,24 +26,12 @@ declare module "@mui/x-data-grid" {
   }
 }
 
-// const style = {
-//   position: "absolute",
-//   top: "50%",
-//   left: "50%",
-//   transform: "translate(-50%, -50%)",
-//   width: 400,
-//   bgcolor: "background.paper",
-//   border: "2px solid #000",
-//   borderRadius: 3,
-//   boxShadow: 24,
-//   p: 4,
-// };
-
 interface RowModesModel {
   [key: string]: { mode: GridRowModes };
 }
 
 export default function AccountsDataGrid() {
+  const [rows, setRows] = useState<GridRowsProp>([]);
   const [rowModesModel, setRowModesModel] = React.useState<RowModesModel>({});
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
@@ -52,6 +43,28 @@ export default function AccountsDataGrid() {
   const handleEditClick = (id: GridRowId) => () => {
     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
   };
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const users: IUserRespondDto[] = await userApi.getAllUsers();
+        const transformedRows: GridRowsProp = users.map((user) => ({
+          id: user.id,
+          fullname: user.fullName,
+          status: user.status,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          phoneNumber: user.phoneNumber,
+        }));
+        setRows(transformedRows);
+      } catch (error) {
+        console.error("Failed to fetch users", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   function CustomToolbar({ setFilterButtonEl }: GridSlotProps["toolbar"]) {
     return (
@@ -82,23 +95,21 @@ export default function AccountsDataGrid() {
       const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
       if (isInEditMode) {
         return (
-          <>
-            <Stack>
-              <GridActionsCellItem
-                key="save"
-                icon={<Save color={"secondary"} />}
-                label="Save"
-                onClick={handleSaveClick(id)}
-              />
-              <GridActionsCellItem
-                key="cancel"
-                icon={<Cancel color={"action"} />}
-                label="Cancel"
-                className="textPrimary"
-                color="inherit"
-              />
-            </Stack>
-          </>
+          <Stack>
+            <GridActionsCellItem
+              key="save"
+              icon={<Save color={"secondary"} />}
+              label="Save"
+              onClick={handleSaveClick(id)}
+            />
+            <GridActionsCellItem
+              key="cancel"
+              icon={<Cancel color={"action"} />}
+              label="Cancel"
+              className="textPrimary"
+              color="inherit"
+            />
+          </Stack>
         );
       }
 

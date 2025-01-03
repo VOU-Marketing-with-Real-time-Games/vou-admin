@@ -147,7 +147,7 @@ const LoginPage = () => {
           <Box sx={{ position: "fixed", top: "1rem", right: "1rem" }}>
             <ColorModeIconDropdown />
           </Box>
-          <Card variant="outlined">
+          <Card variant="outlined" >
             <Box
               component="a"
               href="/"

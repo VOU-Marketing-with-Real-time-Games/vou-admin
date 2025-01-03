@@ -1,7 +1,7 @@
 import AxiosClient from "./client";
 import { IUserRequestDto, IUserRespondDto } from "../types/user.type.ts";
 
-const PREFIX = "users/";
+const PREFIX = "users";
 const URL_GET_ALL = PREFIX;
 const URL_GET_USER_BY_ID = PREFIX;
 const URL_UPDATE_USER = PREFIX;

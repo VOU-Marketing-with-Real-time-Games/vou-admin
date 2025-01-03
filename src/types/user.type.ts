@@ -54,5 +54,5 @@ export interface IUserRespondDto {
   email: string;
   role: string;
   createdAt: string;
-  phoneNum: string;
+  phoneNumber: string;
 }
