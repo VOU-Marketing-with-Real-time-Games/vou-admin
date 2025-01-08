@@ -1,5 +1,5 @@
 import AxiosClient from "./client";
-import { ILoginUserReq, ILoginUserRes, IUserRespondDto, IUserVerify } from "../types/user.type.ts";
+import { ILoginUserReq, ILoginUserRes, IFullUser, IUserVerify } from "../types/user.type.ts";
 
 const PREFIX = "auth/";
 const URL_LOGIN = PREFIX + "login";
@@ -20,7 +20,7 @@ const authApi = {
     const res = await AxiosClient.post(URL_VERIFY, data);
     return res.data;
   },
-  profile: async (): Promise<IUserRespondDto> => {
+  profile: async (): Promise<IFullUser> => {
     const res = await AxiosClient.get(URL_GETME);
     return res.data;
   },

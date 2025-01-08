@@ -1,10 +1,11 @@
 import Chip from "@mui/material/Chip";
-import { getGridSingleSelectOperators, GridColDef, GridRowsProp } from "@mui/x-data-grid";
+import { getGridSingleSelectOperators, GridColDef } from "@mui/x-data-grid";
 
-function renderStatus(status: "ENABLE" | "DISABLE") {
-  const colors: { [index: string]: "success" | "default" } = {
-    ENABLE: "success",
-    DISABLE: "default",
+function renderStatus(status: "ACTIVE" | "INACTIVE" | "BANNED") {
+  const colors: { [index: string]: "success" | "default" | "error" } = {
+    ACTIVE: "success",
+    INACTIVE: "default",
+    BANNED: "error",
   };
 
   return <Chip label={status} color={colors[status]} size="small" />;
@@ -17,17 +18,6 @@ export const columns: GridColDef[] = [
     flex: 1.5,
     minWidth: 200,
     filterable: false,
-  },
-  {
-    field: "image",
-    headerName: "Image",
-    flex: 1,
-    minWidth: 150,
-    renderCell: (params) => <img src={params.value} alt="Campaign" style={{ width: 50, height: 50 }} />,
-    align: "center",
-    headerAlign: "center",
-    filterable: false,
-    getApplyQuickFilterFn: undefined,
   },
   {
     field: "status",
@@ -43,16 +33,16 @@ export const columns: GridColDef[] = [
     getApplyQuickFilterFn: undefined,
   },
   {
-    field: "phoneNum",
-    headerName: "Phone Number",
+    field: "field",
+    headerName: "Field",
     flex: 1,
     minWidth: 150,
     filterable: false,
     getApplyQuickFilterFn: undefined,
   },
   {
-    field: "address",
-    headerName: "Address",
+    field: "creator",
+    headerName: "Owner",
     flex: 1,
     minWidth: 300,
     filterable: false,
@@ -60,4 +50,3 @@ export const columns: GridColDef[] = [
     headerAlign: "center",
   },
 ];
-

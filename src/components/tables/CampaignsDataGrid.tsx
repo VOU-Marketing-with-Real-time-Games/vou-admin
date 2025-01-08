@@ -1,20 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   DataGrid,
-  GridActionsCellItem,
-  GridColDef,
+  GridRowId,
+  GridRowModes,
   GridRowsProp,
   GridSlotProps,
   GridToolbarContainer,
   GridToolbarFilterButton,
   GridToolbarQuickFilter,
 } from "@mui/x-data-grid";
-import { Visibility } from "@mui/icons-material";
+import { columns as initialColumns } from "./campaignsColumnsConfig.tsx";
+import { ICampaignRespondDto } from "../../types/campaign.type.ts";
+import campaignApi from "../../api/campaign.api";
+import { useQuery } from "@tanstack/react-query";
+import CircularProgress from "@mui/material/CircularProgress";
+import Box from "@mui/material/Box";
+import { getActionColumn } from "./ActionColumn";
 import { Backdrop, Modal } from "@mui/material";
 import CampaignDetails from "../modals/CampaignDetails.tsx";
-import campaignApi from "../../api/campaign.api.ts";
-import { ICampaignRespondDto } from "../../types/campaign.type.ts";
-import { columns as initialColumns } from "./campaignsColumnsConfig.tsx";
 
 declare module "@mui/x-data-grid" {
   interface ToolbarPropsOverrides {
@@ -22,58 +25,66 @@ declare module "@mui/x-data-grid" {
   }
 }
 
-function CustomToolbar({ setFilterButtonEl }: GridSlotProps["toolbar"]) {
-  return (
-    <GridToolbarContainer sx={{ display: "flex", justifyContent: "space-between" }}>
-      <GridToolbarFilterButton ref={setFilterButtonEl} />
-      <GridToolbarQuickFilter />
-    </GridToolbarContainer>
-  );
+interface RowModesModel {
+  [key: string]: { mode: GridRowModes };
 }
 
 export default function CampaignsDataGrid() {
   const [rows, setRows] = useState<GridRowsProp>([]);
+  const [rowModesModel, setRowModesModel] = useState<RowModesModel>({});
   const [open, setOpen] = useState(false);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  useEffect(() => {
-    const fetchCampaigns = async () => {
-      try {
-        const data = await campaignApi.getAllCampaigns();
-        const campaigns: ICampaignRespondDto[] = data.content;
-        const transformedRows: GridRowsProp = campaigns.map((campaign) => ({
-          id: campaign.id,
-          name: campaign.name,
-          image: campaign.image,
-          startDate: campaign.startDate,
-          endDate: campaign.endDate,
-          status: campaign.status,
-          brandId: campaign.brandId,
-        }));
-        setRows(transformedRows);
-      } catch (error) {
-        console.error("Failed to fetch campaigns", error);
-      }
-    };
-
-    fetchCampaigns().then();
-  }, []);
-
-  const actionCol: GridColDef = {
-    field: "actions",
-    headerName: "Actions",
-    flex: 1,
-    minWidth: 100,
-    align: "center",
-    headerAlign: "center",
-    filterable: false,
-    getApplyQuickFilterFn: undefined,
-    renderCell: () => <GridActionsCellItem key="watch" icon={<Visibility />} label="Watch" onClick={handleOpen} />,
+  const handleSaveClick = (id: GridRowId) => () => {
+    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
   };
 
-  const columns = [...initialColumns, actionCol];
+  const handleEditClick = (id: GridRowId) => () => {
+    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
+  };
+
+  const transformedRows = (campaigns: ICampaignRespondDto[]): GridRowsProp => {
+    return campaigns.map((campaign) => ({
+      id: campaign.id,
+      name: campaign.name,
+      image: campaign.image,
+      startDate: campaign.startDate,
+      endDate: campaign.endDate,
+      status: campaign.status,
+      brandId: campaign.brandId,
+    }));
+  };
+
+  const { isLoading } = useQuery({
+    queryKey: ["campaigns"],
+    queryFn: async () => {
+      const data = await campaignApi.getAllCampaigns();
+      const campaigns: ICampaignRespondDto[] = data.content;
+      setRows(transformedRows(campaigns));
+      return campaigns;
+    },
+  });
+
+  function CustomToolbar({ setFilterButtonEl }: GridSlotProps["toolbar"]) {
+    return (
+      <GridToolbarContainer sx={{ display: "flex", justifyContent: "space-between" }}>
+        <GridToolbarFilterButton ref={setFilterButtonEl} />
+        <GridToolbarQuickFilter />
+      </GridToolbarContainer>
+    );
+  }
+
+  const columns = [...initialColumns, getActionColumn({ rowModesModel, handleSaveClick, handleEditClick, handleOpen })];
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "start", height: "100vh" }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <>

@@ -4,12 +4,12 @@ export interface IBrandRequestDto {
   field: string;
 }
 
-export interface IBrandRespondDto {
+export interface IBrand {
   id: number;
   name: string;
   field: string;
   status: string;
   enabled: boolean;
-  creator: string;
+  creator: number;
   createdAt: string;
 }

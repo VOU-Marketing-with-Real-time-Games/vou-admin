@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   DataGrid,
-  GridActionsCellItem,
-  GridColDef,
   GridRowId,
   GridRowModes,
   GridRowsProp,
@@ -11,14 +9,16 @@ import {
   GridToolbarFilterButton,
   GridToolbarQuickFilter,
 } from "@mui/x-data-grid";
-import { columns as initialColumns } from "./accountsColumnsConfig.tsx";
+import { columns as initialColumns } from "./accountsColumnsConfig";
 import Button from "@mui/material/Button";
-import { Add, Block, Cancel, Edit, Save } from "@mui/icons-material";
+import { Add } from "@mui/icons-material";
 import { Backdrop, Box, Modal } from "@mui/material";
-import Stack from "@mui/material/Stack";
-import AddAccountForm from "../modals/AddAccountForm.tsx";
-import userApi from "../../api/user.api.ts";
-import { IUserRespondDto } from "../../types/user.type.ts";
+import AddAccountForm from "../modals/AddAccountForm";
+import userApi from "../../api/user.api";
+import { IFullUser } from "../../types/user.type";
+import { useQuery } from "@tanstack/react-query";
+import { getActionColumn } from "./ActionColumn";
+import CircularProgress from "@mui/material/CircularProgress";
 
 declare module "@mui/x-data-grid" {
   interface ToolbarPropsOverrides {
@@ -44,27 +44,26 @@ export default function AccountsDataGrid() {
     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
   };
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const users: IUserRespondDto[] = await userApi.getAllUsers();
-        const transformedRows: GridRowsProp = users.map((user) => ({
-          id: user.id,
-          fullname: user.fullName,
-          status: user.status,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-          phoneNumber: user.phoneNumber,
-        }));
-        setRows(transformedRows);
-      } catch (error) {
-        console.error("Failed to fetch users", error);
-      }
-    };
+  const transformedRows = (users: IFullUser[]): GridRowsProp => {
+    return users.map((user) => ({
+      id: user.id,
+      fullname: user.fullName,
+      status: user.status,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      phoneNumber: user.phoneNumber,
+    }));
+  };
 
-    fetchUsers();
-  }, []);
+  const { isLoading } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const response: IFullUser[] = await userApi.getAllUsers();
+      setRows(transformedRows(response));
+      return response;
+    },
+  });
 
   function CustomToolbar({ setFilterButtonEl }: GridSlotProps["toolbar"]) {
     return (
@@ -80,56 +79,15 @@ export default function AccountsDataGrid() {
     );
   }
 
-  const actionCol: GridColDef = {
-    field: "action",
-    headerName: "Action",
-    sortable: false,
-    width: 100,
-    cellClassName: "actions",
-    align: "center",
-    headerAlign: "center",
-    filterable: false,
-    getApplyQuickFilterFn: undefined,
-    renderCell: (params) => {
-      const id = params.id as GridRowId;
-      const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
-      if (isInEditMode) {
-        return (
-          <Stack>
-            <GridActionsCellItem
-              key="save"
-              icon={<Save color={"secondary"} />}
-              label="Save"
-              onClick={handleSaveClick(id)}
-            />
-            <GridActionsCellItem
-              key="cancel"
-              icon={<Cancel color={"action"} />}
-              label="Cancel"
-              className="textPrimary"
-              color="inherit"
-            />
-          </Stack>
-        );
-      }
+  const columns = [...initialColumns, getActionColumn({ rowModesModel, handleSaveClick, handleEditClick })];
 
-      return (
-        <>
-          <GridActionsCellItem
-            key="edit"
-            icon={<Edit color={"primary"} />}
-            label="Edit"
-            className="textPrimary"
-            color="inherit"
-            onClick={handleEditClick(id)}
-          />
-          <GridActionsCellItem key="block" icon={<Block color={"error"} />} label="Block" color="warning" />
-        </>
-      );
-    },
-  };
-
-  const columns = [...initialColumns, actionCol];
+  if (isLoading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "start", height: "100vh" }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <>

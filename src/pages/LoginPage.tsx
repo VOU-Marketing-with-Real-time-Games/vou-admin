@@ -25,7 +25,7 @@ import toast from "react-hot-toast";
 import { setToken } from "../utils/helper";
 import { useNavigate, Navigate } from "react-router-dom";
 import path from "../constants/paths.ts";
-import { ILoginUserRes, AuthQueryConfig, IUserRespondDto } from "../types/user.type";
+import { ILoginUserRes, AuthQueryConfig, IFullUser } from "../types/user.type";
 import useQueryString from "../hooks/useQueryString";
 
 type FormData = LoginSchema;
@@ -108,7 +108,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (getMeQuery.isSuccess) {
-      const profile: IUserRespondDto = getMeQuery.data;
+      const profile: IFullUser = getMeQuery.data;
       console.log(profile);
       changeAuth({ ...profile });
       toast.success("Login successfully");

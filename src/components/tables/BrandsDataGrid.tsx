@@ -1,16 +1,21 @@
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   DataGrid,
-  GridActionsCellItem,
-  GridColDef,
+  GridRowId,
+  GridRowModes,
+  GridRowsProp,
   GridSlotProps,
   GridToolbarContainer,
   GridToolbarFilterButton,
   GridToolbarQuickFilter,
 } from "@mui/x-data-grid";
 import { columns as initialColumns } from "./brandsColumnsConfig.tsx";
-import React from "react";
-import { Block, Visibility } from "@mui/icons-material";
+import { IBrand } from "../../types/brand.type.ts";
+import brandApi from "../../api/brand.api";
+import { getActionColumn } from "./ActionColumn";
+import { useQuery } from "@tanstack/react-query";
+import CircularProgress from "@mui/material/CircularProgress";
+import Box from "@mui/material/Box";
 
 declare module "@mui/x-data-grid" {
   interface ToolbarPropsOverrides {
@@ -18,66 +23,62 @@ declare module "@mui/x-data-grid" {
   }
 }
 
-function CustomToolbar({ setFilterButtonEl }: GridSlotProps["toolbar"]) {
-  return (
-    <GridToolbarContainer sx={{ display: "flex", justifyContent: "space-between" }}>
-      <GridToolbarFilterButton ref={setFilterButtonEl} />
-      <GridToolbarQuickFilter />
-    </GridToolbarContainer>
-  );
+interface RowModesModel {
+  [key: string]: { mode: GridRowModes };
 }
 
 export default function BrandsDataGrid() {
   const [rows, setRows] = useState<GridRowsProp>([]);
+  const [rowModesModel, setRowModesModel] = useState<RowModesModel>({});
 
-  useEffect(() => {
-    const fetchBrands = async () => {
-      try {
-        const brands: IBrandRespondDto[] = await brandApi.getAllBrands();
-        const transformedRows: GridRowsProp = brands.map((brand) => ({
-          id: brand.id,
-          name: brand.name,
-          field: brand.field,
-          status: brand.status,
-          enabled: brand.enabled,
-          creator: brand.creator,
-          createdAt: brand.createdAt,
-        }));
-        setRows(transformedRows);
-      } catch (error) {
-        console.error("Failed to fetch brands", error);
-      }
-    };
-
-    fetchBrands();
-  }, []);
-  const actionCol: GridColDef = {
-    field: "action",
-    headerName: "Action",
-    sortable: false,
-    width: 100,
-    cellClassName: "actions",
-    align: "center",
-    headerAlign: "center",
-    filterable: false,
-    getApplyQuickFilterFn: undefined,
-    renderCell: () => {
-      return (
-        <>
-          <GridActionsCellItem
-            key="edit"
-            icon={<Visibility color={"primary"} />}
-            label="Edit"
-            className="textPrimary"
-            color="inherit"
-          />
-          <GridActionsCellItem key="block" icon={<Block color={"error"} />} label="Block" color="warning" />
-        </>
-      );
-    },
+  const handleSaveClick = (id: GridRowId) => () => {
+    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
   };
 
-  const columns = [...initialColumns, actionCol];
+  const handleEditClick = (id: GridRowId) => () => {
+    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
+  };
+
+  const transformedRows = (brands: IBrand[]): GridRowsProp => {
+    return brands.map((brand) => ({
+      id: brand.id,
+      name: brand.name,
+      field: brand.field,
+      status: brand.status,
+      enabled: brand.enabled,
+      creator: brand.creator,
+      createdAt: brand.createdAt,
+    }));
+  };
+
+  const { isLoading } = useQuery({
+    queryKey: ["brands"],
+    queryFn: async () => {
+      const brands: IBrand[] = await brandApi.getAllBrands();
+      setRows(transformedRows(brands));
+      return brands;
+    },
+  });
+
+  function CustomToolbar({ setFilterButtonEl }: GridSlotProps["toolbar"]) {
+    return (
+      <GridToolbarContainer sx={{ display: "flex", justifyContent: "space-between" }}>
+        <GridToolbarFilterButton ref={setFilterButtonEl} />
+        <GridToolbarQuickFilter />
+      </GridToolbarContainer>
+    );
+  }
+
+  const columns = [...initialColumns, getActionColumn({ rowModesModel, handleSaveClick, handleEditClick })];
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "start", height: "100vh" }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <DataGrid
       autoHeight

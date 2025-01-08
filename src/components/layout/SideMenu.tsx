@@ -10,6 +10,8 @@ import OptionsMenu from "./OptionsMenu.tsx";
 import logo from "../../assets/image/logo.png";
 import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext.tsx";
+import { useNavigate } from "react-router-dom";
+
 const drawerWidth = "18%";
 
 const Drawer = styled(MuiDrawer)({
@@ -25,7 +27,12 @@ const Drawer = styled(MuiDrawer)({
 
 export default function SideMenu() {
   const { auth } = useContext(AuthContext)!;
-  console.log(auth);
+  const navigate = useNavigate();
+
+  const handleLogoClick = () => {
+    navigate("/");
+  };
+
   return (
     <Drawer
       variant="permanent"
@@ -45,7 +52,11 @@ export default function SideMenu() {
           justifyContent: "center",
         }}
       >
-        <Box component="a" href="/" sx={{ display: "flex", alignItems: "center", justifyItems: "center" }}>
+        <Box
+          component="button"
+          onClick={handleLogoClick}
+          sx={{ display: "flex", alignItems: "center", justifyItems: "center", background: "none", border: "none", cursor: "pointer" }}
+        >
           <img src={logo} alt="Logo" style={{ height: 70 }} />
         </Box>
       </Box>

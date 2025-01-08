@@ -1,6 +1,13 @@
 export interface IFullUser {
+  id: string;
+  fullName: string;
+  avatar: string;
+  status: string;
+  username: string;
   email: string;
-  name: string;
+  role: string;
+  createdAt: string;
+  phoneNumber: string;
 }
 
 export interface IRegisterUserReq {
@@ -43,16 +50,4 @@ export interface IUserRequestDto {
   phoneNum: string;
   dob: string;
   gender: string;
-}
-
-export interface IUserRespondDto {
-  id: string;
-  fullName: string;
-  avatar: string;
-  status: string;
-  username: string;
-  email: string;
-  role: string;
-  createdAt: string;
-  phoneNumber: string;
 }
