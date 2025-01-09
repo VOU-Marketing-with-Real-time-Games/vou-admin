@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import {
   DataGrid,
-  GridRowId,
-  GridRowModes,
   GridRowsProp,
   GridSlotProps,
   GridToolbarContainer,
@@ -13,11 +11,9 @@ import { columns as initialColumns } from "./campaignsColumnsConfig.tsx";
 import { ICampaignRespondDto } from "../../types/campaign.type.ts";
 import campaignApi from "../../api/campaign.api";
 import { useQuery } from "@tanstack/react-query";
-import CircularProgress from "@mui/material/CircularProgress";
-import Box from "@mui/material/Box";
 import { getActionColumn } from "./ActionColumn";
 import { Backdrop, Modal } from "@mui/material";
-import CampaignDetails from "../modals/CampaignDetails.tsx";
+import CampaignDetails from "../modals-content/CampaignDetails.tsx";
 
 declare module "@mui/x-data-grid" {
   interface ToolbarPropsOverrides {
@@ -25,25 +21,15 @@ declare module "@mui/x-data-grid" {
   }
 }
 
-interface RowModesModel {
-  [key: string]: { mode: GridRowModes };
-}
-
 export default function CampaignsDataGrid() {
   const [rows, setRows] = useState<GridRowsProp>([]);
-  const [rowModesModel, setRowModesModel] = useState<RowModesModel>({});
   const [open, setOpen] = useState(false);
 
-  const handleOpen = () => setOpen(true);
+  const handleOpen = (id: string | number) => {
+    console.log(id);
+    setOpen(true);
+  };
   const handleClose = () => setOpen(false);
-
-  const handleSaveClick = (id: GridRowId) => () => {
-    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
-  };
-
-  const handleEditClick = (id: GridRowId) => () => {
-    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
-  };
 
   const transformedRows = (campaigns: ICampaignRespondDto[]): GridRowsProp => {
     return campaigns.map((campaign) => ({
@@ -57,7 +43,7 @@ export default function CampaignsDataGrid() {
     }));
   };
 
-  const { isLoading } = useQuery({
+  useQuery({
     queryKey: ["campaigns"],
     queryFn: async () => {
       const data = await campaignApi.getAllCampaigns();
@@ -76,15 +62,7 @@ export default function CampaignsDataGrid() {
     );
   }
 
-  const columns = [...initialColumns, getActionColumn({ rowModesModel, handleSaveClick, handleEditClick, handleOpen })];
-
-  if (isLoading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "start", height: "100vh" }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const columns = [...initialColumns, getActionColumn({ handleOpen })];
 
   return (
     <>
@@ -105,7 +83,6 @@ export default function CampaignsDataGrid() {
       </Modal>
       <DataGrid
         rowHeight={120}
-        checkboxSelection
         rows={rows}
         columns={columns}
         getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd")}

@@ -126,7 +126,7 @@ const LoginPage = () => {
   useEffect(() => {
     if (queryConfig.access_token && queryConfig.refresh_token) {
       setToken(queryConfig.access_token, queryConfig.refresh_token);
-      getMeQuery.refetch();
+      getMeQuery.refetch().then();
     }
   }, [getMeQuery, queryConfig.access_token, queryConfig.refresh_token]);
 
@@ -147,7 +147,7 @@ const LoginPage = () => {
           <Box sx={{ position: "fixed", top: "1rem", right: "1rem" }}>
             <ColorModeIconDropdown />
           </Box>
-          <Card variant="outlined" >
+          <Card variant="outlined">
             <Box
               component="a"
               href="/"

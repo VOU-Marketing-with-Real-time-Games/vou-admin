@@ -41,13 +41,11 @@ export interface IResetPassword {
   password: string;
 }
 
-export interface IUserRequestDto {
-  fullname: string;
+export interface IUserCreate {
+  fullName: string;
   username: string;
   email: string;
   password: string;
   role: string;
-  phoneNum: string;
-  dob: string;
-  gender: string;
+  phoneNumber: string;
 }

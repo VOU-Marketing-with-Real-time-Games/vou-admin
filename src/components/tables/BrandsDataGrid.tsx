@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import {
   DataGrid,
-  GridRowId,
-  GridRowModes,
   GridRowsProp,
   GridSlotProps,
   GridToolbarContainer,
@@ -14,8 +12,8 @@ import { IBrand } from "../../types/brand.type.ts";
 import brandApi from "../../api/brand.api";
 import { getActionColumn } from "./ActionColumn";
 import { useQuery } from "@tanstack/react-query";
-import CircularProgress from "@mui/material/CircularProgress";
-import Box from "@mui/material/Box";
+import { Backdrop, Modal } from "@mui/material";
+import CampaignDetails from "../modals-content/CampaignDetails.tsx";
 
 declare module "@mui/x-data-grid" {
   interface ToolbarPropsOverrides {
@@ -23,21 +21,15 @@ declare module "@mui/x-data-grid" {
   }
 }
 
-interface RowModesModel {
-  [key: string]: { mode: GridRowModes };
-}
-
 export default function BrandsDataGrid() {
   const [rows, setRows] = useState<GridRowsProp>([]);
-  const [rowModesModel, setRowModesModel] = useState<RowModesModel>({});
+  const [open, setOpen] = useState(false);
 
-  const handleSaveClick = (id: GridRowId) => () => {
-    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
+  const handleOpen = (id: string | number) => {
+    console.log(id);
+    setOpen(true);
   };
-
-  const handleEditClick = (id: GridRowId) => () => {
-    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
-  };
+  const handleClose = () => setOpen(false);
 
   const transformedRows = (brands: IBrand[]): GridRowsProp => {
     return brands.map((brand) => ({
@@ -51,7 +43,7 @@ export default function BrandsDataGrid() {
     }));
   };
 
-  const { isLoading } = useQuery({
+  useQuery({
     queryKey: ["brands"],
     queryFn: async () => {
       const brands: IBrand[] = await brandApi.getAllBrands();
@@ -69,61 +61,68 @@ export default function BrandsDataGrid() {
     );
   }
 
-  const columns = [...initialColumns, getActionColumn({ rowModesModel, handleSaveClick, handleEditClick })];
-
-  if (isLoading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "start", height: "100vh" }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const columns = [...initialColumns, getActionColumn({ handleOpen })];
 
   return (
-    <DataGrid
-      autoHeight
-      checkboxSelection
-      rows={rows}
-      columns={columns}
-      getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd")}
-      initialState={{
-        pagination: { paginationModel: { pageSize: 20 } },
-      }}
-      pageSizeOptions={[10, 20, 50]}
-      disableColumnResize
-      disableColumnMenu
-      density="compact"
-      slots={{ toolbar: CustomToolbar }}
-      slotProps={{
-        toolbar: {
-          showQuickFilter: true,
-        },
-        filterPanel: {
-          filterFormProps: {
-            logicOperatorInputProps: {
-              variant: "outlined",
-              size: "small",
-            },
-            columnInputProps: {
-              variant: "outlined",
-              size: "small",
-              sx: { mt: "auto" },
-            },
-            operatorInputProps: {
-              variant: "outlined",
-              size: "small",
-              sx: { mt: "auto" },
-            },
-            valueInputProps: {
-              InputComponentProps: {
+    <>
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        open={open}
+        onClose={handleClose}
+        closeAfterTransition
+        slots={{ backdrop: Backdrop }}
+        slotProps={{
+          backdrop: {
+            timeout: 500,
+          },
+        }}
+      >
+        <CampaignDetails />
+      </Modal>
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd")}
+        initialState={{
+          pagination: { paginationModel: { pageSize: 20 } },
+        }}
+        pageSizeOptions={[10, 20, 50]}
+        disableColumnResize
+        disableColumnMenu
+        density="compact"
+        slots={{ toolbar: CustomToolbar }}
+        slotProps={{
+          toolbar: {
+            showQuickFilter: true,
+          },
+          filterPanel: {
+            filterFormProps: {
+              logicOperatorInputProps: {
+                variant: "outlined",
+                size: "small",
+              },
+              columnInputProps: {
                 variant: "outlined",
                 size: "small",
                 sx: { mt: "auto" },
               },
+              operatorInputProps: {
+                variant: "outlined",
+                size: "small",
+                sx: { mt: "auto" },
+              },
+              valueInputProps: {
+                InputComponentProps: {
+                  variant: "outlined",
+                  size: "small",
+                  sx: { mt: "auto" },
+                },
+              },
             },
           },
-        },
-      }}
-    />
+        }}
+      />
+    </>
   );
 }

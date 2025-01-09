@@ -1,10 +1,7 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   DataGrid,
-  GridRowId,
-  GridRowModes,
   GridRowsProp,
-  GridSlotProps,
   GridToolbarContainer,
   GridToolbarFilterButton,
   GridToolbarQuickFilter,
@@ -13,12 +10,12 @@ import { columns as initialColumns } from "./accountsColumnsConfig";
 import Button from "@mui/material/Button";
 import { Add } from "@mui/icons-material";
 import { Backdrop, Box, Modal } from "@mui/material";
-import AddAccountForm from "../modals/AddAccountForm";
+import AddAccountForm from "../modals-content/AddAccountForm";
 import userApi from "../../api/user.api";
 import { IFullUser } from "../../types/user.type";
 import { useQuery } from "@tanstack/react-query";
 import { getActionColumn } from "./ActionColumn";
-import CircularProgress from "@mui/material/CircularProgress";
+import CampaignDetails from "../modals-content/CampaignDetails.tsx";
 
 declare module "@mui/x-data-grid" {
   interface ToolbarPropsOverrides {
@@ -26,25 +23,20 @@ declare module "@mui/x-data-grid" {
   }
 }
 
-interface RowModesModel {
-  [key: string]: { mode: GridRowModes };
-}
-
 export default function AccountsDataGrid() {
   const [rows, setRows] = useState<GridRowsProp>([]);
-  const [rowModesModel, setRowModesModel] = React.useState<RowModesModel>({});
-  const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
+  const [openForm, setOpenForm] = useState(false);
+  const [open, setOpen] = useState(false);
+  const handleOpen = (id: string | number) => {
+    console.log(id);
+    setOpen(true);
+  };
   const handleClose = () => setOpen(false);
 
-  const handleSaveClick = (id: GridRowId) => () => {
-    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
-  };
-  const handleEditClick = (id: GridRowId) => () => {
-    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
-  };
+  const handleOpenForm = () => setOpenForm(true);
+  const handleCloseForm = () => setOpenForm(false);
 
-  const transformedRows = (users: IFullUser[]): GridRowsProp => {
+  const transformedRows = useCallback((users: IFullUser[]): GridRowsProp => {
     return users.map((user) => ({
       id: user.id,
       fullname: user.fullName,
@@ -54,9 +46,9 @@ export default function AccountsDataGrid() {
       role: user.role,
       phoneNumber: user.phoneNumber,
     }));
-  };
+  }, []);
 
-  const { isLoading } = useQuery({
+  const { refetch } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
       const response: IFullUser[] = await userApi.getAllUsers();
@@ -65,32 +57,46 @@ export default function AccountsDataGrid() {
     },
   });
 
-  function CustomToolbar({ setFilterButtonEl }: GridSlotProps["toolbar"]) {
+  const CustomToolbar = React.memo(() => {
     return (
       <GridToolbarContainer sx={{ display: "flex", justifyContent: "space-between" }}>
-        <GridToolbarFilterButton ref={setFilterButtonEl} />
+        <GridToolbarFilterButton />
         <Box>
           <GridToolbarQuickFilter />
-          <Button color="primary" startIcon={<Add />} sx={{ marginLeft: "20px" }} onClick={handleOpen}>
-            Add Account
+          <Button color="primary" startIcon={<Add />} sx={{ marginLeft: "20px" }} onClick={handleOpenForm}>
+            New Account
           </Button>
         </Box>
       </GridToolbarContainer>
     );
-  }
+  });
 
-  const columns = [...initialColumns, getActionColumn({ rowModesModel, handleSaveClick, handleEditClick })];
+  CustomToolbar.displayName = "CustomToolbar";
 
-  if (isLoading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "start", height: "100vh" }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const handleFormSuccess = () => {
+    setOpenForm(false);
+    refetch();
+  };
+
+  const columns = [...initialColumns, getActionColumn({ handleOpen })];
 
   return (
     <>
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        open={openForm}
+        onClose={handleCloseForm}
+        closeAfterTransition
+        slots={{ backdrop: Backdrop }}
+        slotProps={{
+          backdrop: {
+            timeout: 500,
+          },
+        }}
+      >
+        <AddAccountForm onSuccess={handleFormSuccess} />
+      </Modal>
       <Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
@@ -104,11 +110,9 @@ export default function AccountsDataGrid() {
           },
         }}
       >
-        <AddAccountForm />
+        <CampaignDetails />
       </Modal>
       <DataGrid
-        autoHeight
-        checkboxSelection
         rows={rows}
         columns={columns}
         getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd")}
@@ -119,7 +123,9 @@ export default function AccountsDataGrid() {
         disableColumnResize
         disableColumnMenu
         density="compact"
-        slots={{ toolbar: CustomToolbar }}
+        slots={{
+          toolbar: CustomToolbar,
+        }}
         slotProps={{
           toolbar: {
             showQuickFilter: true,
