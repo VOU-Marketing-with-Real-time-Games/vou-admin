@@ -15,7 +15,7 @@ import userApi from "../../api/user.api";
 import { IFullUser } from "../../types/user.type";
 import { useQuery } from "@tanstack/react-query";
 import { getActionColumn } from "./ActionColumn";
-import CampaignDetails from "../modals-content/CampaignDetails.tsx";
+import AccountInfor from "../modals-content/AccountInfor.tsx";
 
 declare module "@mui/x-data-grid" {
   interface ToolbarPropsOverrides {
@@ -27,8 +27,10 @@ export default function AccountsDataGrid() {
   const [rows, setRows] = useState<GridRowsProp>([]);
   const [openForm, setOpenForm] = useState(false);
   const [open, setOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | number | null>(null);
+
   const handleOpen = (id: string | number) => {
-    console.log(id);
+    setSelectedUserId(id);
     setOpen(true);
   };
   const handleClose = () => setOpen(false);
@@ -110,7 +112,7 @@ export default function AccountsDataGrid() {
           },
         }}
       >
-        <CampaignDetails />
+        {selectedUserId === null ? <div></div> : <AccountInfor userId={selectedUserId} />}
       </Modal>
       <DataGrid
         rows={rows}

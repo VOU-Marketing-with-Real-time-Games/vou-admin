@@ -13,7 +13,7 @@ const userApi = {
     const res = await AxiosClient.get(URL_GET_ALL);
     return res.data;
   },
-  getUserById: async (id: number): Promise<IFullUser> => {
+  getUserById: async (id: string | number): Promise<IFullUser> => {
     const res = await AxiosClient.get(`${URL_GET_USER_BY_ID}/${id}`);
     return res.data;
   },
