@@ -2,7 +2,7 @@ import { forwardRef, useState } from "react";
 import Typography from "@mui/material/Typography";
 import MuiCard from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { IFullUser } from "../../types/user.type";
 import userApi from "../../api/user.api";
 import toast from "react-hot-toast";
@@ -13,6 +13,13 @@ import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Avatar from "@mui/material/Avatar";
+import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   position: "absolute",
@@ -24,7 +31,7 @@ const Card = styled(MuiCard)(({ theme }) => ({
   flexDirection: "column",
   alignSelf: "center",
   width: "30%",
-  maxHeight: "90%",
+  maxHeight: "98%",
   height: "fit-content",
   padding: theme.spacing(4),
   gap: theme.spacing(2),
@@ -42,10 +49,73 @@ const Card = styled(MuiCard)(({ theme }) => ({
 
 interface AccountInforProps {
   userId: string | number;
+  onSuccess: () => void;
 }
 
-const AccountInfor = forwardRef<HTMLDivElement, AccountInforProps>(({ userId }, ref) => {
+const renderRole = (
+  role: string,
+  isEditing: boolean,
+  setIsEditing: (value: boolean) => void,
+  handleChange: (event: any) => void,
+) => {
+  const roleColors: { [index: string]: "primary" | "secondary" | "default" } = {
+    ADMIN: "primary",
+    BRAND: "secondary",
+    USER: "default",
+  };
+
+  return isEditing ? (
+    <Select value={role} onChange={handleChange} size="small" variant="outlined">
+      <MenuItem value="ADMIN">ADMIN</MenuItem>
+      <MenuItem value="BRAND">BRAND</MenuItem>
+      <MenuItem value="USER">USER</MenuItem>
+    </Select>
+  ) : (
+    <>
+      <Chip label={role} color={roleColors[role] || "default"} size="small" />
+      <IconButton size="small" sx={{ marginLeft: "0.5rem", border: "0" }} onClick={() => setIsEditing(true)}>
+        <EditOutlinedIcon fontSize="small" />
+      </IconButton>
+    </>
+  );
+};
+
+const renderStatus = (
+  status: string,
+  isEditing: boolean,
+  setIsEditing: (value: boolean) => void,
+  handleChange: (event: any) => void,
+) => {
+  const colors: { [index: string]: "success" | "default" | "error" } = {
+    ACTIVE: "success",
+    INACTIVE: "default",
+    BANNED: "error",
+  };
+
+  return isEditing ? (
+    <Select value={status} onChange={handleChange} size="small" variant="outlined">
+      <MenuItem value="ACTIVE">ACTIVE</MenuItem>
+      <MenuItem value="INACTIVE">INACTIVE</MenuItem>
+      <MenuItem value="BANNED">BANNED</MenuItem>
+    </Select>
+  ) : (
+    <>
+      <Chip label={status} color={colors[status]} size="small" />
+      <IconButton size="small" sx={{ marginLeft: "0.5rem", border: "0" }} onClick={() => setIsEditing(true)}>
+        <EditOutlinedIcon fontSize="small" />
+      </IconButton>
+    </>
+  );
+};
+
+const AccountInfor = forwardRef<HTMLDivElement, AccountInforProps>(({ userId, onSuccess }, ref) => {
   const [user, setUser] = useState<IFullUser>();
+  const [originalRole, setOriginalRole] = useState<string>("");
+  const [originalStatus, setOriginalStatus] = useState<string>("");
+  const [currentRole, setCurrentRole] = useState<string>("");
+  const [currentStatus, setCurrentStatus] = useState<string>("");
+  const [isEditingRole, setIsEditingRole] = useState(false);
+  const [isEditingStatus, setIsEditingStatus] = useState(false);
 
   useQuery({
     queryKey: ["get-user"],
@@ -53,12 +123,64 @@ const AccountInfor = forwardRef<HTMLDivElement, AccountInforProps>(({ userId }, 
       try {
         const fetchedUser = await userApi.getUserById(userId);
         setUser(fetchedUser);
+        setOriginalRole(fetchedUser.role);
+        setOriginalStatus(fetchedUser.status);
+        setCurrentRole(fetchedUser.role);
+        setCurrentStatus(fetchedUser.status);
       } catch (error) {
         console.log(error);
         toast.error("Failed to fetch user data");
       }
     },
   });
+
+  const updateUserMutation = useMutation({
+    mutationFn: (data: IFullUser) => userApi.updateUser(userId, data),
+    onError: () => {
+      toast.error("Failed to update user data");
+    },
+    onSuccess: () => {
+      toast.success("User updated successfully");
+      setOriginalRole(currentRole);
+      setOriginalStatus(currentStatus);
+      onSuccess();
+    },
+  });
+
+  const handleRoleChange = (event: any) => {
+    setCurrentRole(event.target.value);
+    setIsEditingRole(false);
+  };
+
+  const handleStatusChange = (event: any) => {
+    setCurrentStatus(event.target.value);
+    setIsEditingStatus(false);
+  };
+
+  const validateFields = () => {
+    const validRoles = ["ADMIN", "BRAND", "USER"];
+    const validStatuses = ["ACTIVE", "INACTIVE", "BANNED"];
+
+    if (!validRoles.includes(currentRole)) {
+      toast.error("Invalid role selected");
+      return false;
+    }
+
+    if (!validStatuses.includes(currentStatus)) {
+      toast.error("Invalid status selected");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSave = () => {
+    if (validateFields() && user) {
+      updateUserMutation.mutate({ ...user, role: currentRole, status: currentStatus });
+    }
+  };
+
+  const hasChanges = currentRole !== originalRole || currentStatus !== originalStatus;
 
   return (
     <Card ref={ref} variant="outlined">
@@ -89,7 +211,7 @@ const AccountInfor = forwardRef<HTMLDivElement, AccountInforProps>(({ userId }, 
                 </TableRow>
                 <TableRow>
                   <TableCell sx={{ fontWeight: "bold", color: "primary.main" }}>Role</TableCell>
-                  <TableCell>{user.role}</TableCell>
+                  <TableCell>{renderRole(currentRole, isEditingRole, setIsEditingRole, handleRoleChange)}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell sx={{ fontWeight: "bold", color: "primary.main" }}>Phone Number</TableCell>
@@ -97,11 +219,20 @@ const AccountInfor = forwardRef<HTMLDivElement, AccountInforProps>(({ userId }, 
                 </TableRow>
                 <TableRow>
                   <TableCell sx={{ fontWeight: "bold", color: "primary.main" }}>Status</TableCell>
-                  <TableCell>{user.status}</TableCell>
+                  <TableCell>
+                    {renderStatus(currentStatus, isEditingStatus, setIsEditingStatus, handleStatusChange)}
+                  </TableCell>
                 </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
+          {hasChanges && (
+            <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}>
+              <Button variant="contained" color="primary" onClick={handleSave}>
+                Save
+              </Button>
+            </Box>
+          )}
         </>
       ) : (
         <Typography component="p" variant="body1" sx={{ width: "100%", textAlign: "center" }}>

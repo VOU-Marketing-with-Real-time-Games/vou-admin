@@ -17,7 +17,7 @@ const userApi = {
     const res = await AxiosClient.get(`${URL_GET_USER_BY_ID}/${id}`);
     return res.data;
   },
-  updateUser: async (id: number, userDto: IUserCreate): Promise<IFullUser> => {
+  updateUser: async (id: string | number, userDto: IFullUser): Promise<IFullUser> => {
     const res = await AxiosClient.put(`${URL_UPDATE_USER}/${id}`, userDto);
     return res.data;
   },

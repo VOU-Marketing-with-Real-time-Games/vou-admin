@@ -80,6 +80,11 @@ export default function AccountsDataGrid() {
     refetch();
   };
 
+  const handleModalUpdateSuccess = () => {
+    setOpen(false);
+    refetch();
+  };
+
   const columns = [...initialColumns, getActionColumn({ handleOpen })];
 
   return (
@@ -112,7 +117,7 @@ export default function AccountsDataGrid() {
           },
         }}
       >
-        {selectedUserId === null ? <div></div> : <AccountInfor userId={selectedUserId} />}
+        {selectedUserId === null ? <div></div> : <AccountInfor userId={selectedUserId} onSuccess={handleModalUpdateSuccess}/>}
       </Modal>
       <DataGrid
         rows={rows}
