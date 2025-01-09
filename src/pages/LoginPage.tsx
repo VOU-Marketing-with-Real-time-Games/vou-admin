@@ -22,7 +22,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import authApi from "../api/auth.api";
 import { AxiosError } from "axios";
 import toast from "react-hot-toast";
-import { setToken } from "../utils/helper";
+import { removeAllToken, setToken } from "../utils/helper";
 import { useNavigate, Navigate } from "react-router-dom";
 import path from "../constants/paths.ts";
 import { ILoginUserRes, AuthQueryConfig, IFullUser } from "../types/user.type";
@@ -92,7 +92,7 @@ const LoginPage = () => {
   const signinMutation = useMutation({
     mutationFn: (body: FormData) => authApi.login(body),
     onError: (error: AxiosError) => {
-      toast.error(error?.message || "Something went wrong");
+      toast.error(error || "Something went wrong");
     },
     onSuccess: (response: ILoginUserRes) => {
       setToken(response.accessToken, response.refreshToken);
@@ -109,7 +109,11 @@ const LoginPage = () => {
   useEffect(() => {
     if (getMeQuery.isSuccess) {
       const profile: IFullUser = getMeQuery.data;
-      console.log(profile);
+      if (profile.role !== "ADMIN") {
+        toast.error("Only ADMIN users can log in");
+        removeAllToken();
+        return;
+      }
       changeAuth({ ...profile });
       toast.success("Login successfully");
       navigate(path.HOME);
@@ -118,7 +122,8 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (getMeQuery.isError) {
-      toast.error("AccessToken has expired");
+      // toast.error("AccessToken has expired");
+      removeAllToken();
       navigate(path.LOGIN, { replace: true });
     }
   }, [getMeQuery.isError]);
@@ -133,6 +138,7 @@ const LoginPage = () => {
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     if (signinMutation.isPending || getMeQuery.isFetching) return;
     signinMutation.mutate(data);
+    getMeQuery.refetch();
   };
 
   if (auth != null) {

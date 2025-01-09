@@ -9,7 +9,6 @@ function PrivateRoute() {
   const accessToken = localStorage.getItem("accessToken");
 
   if (!auth || !accessToken) {
-    toast.error("You don't have permission");
     return <Navigate to={path.LOGIN} replace />;
   }
 

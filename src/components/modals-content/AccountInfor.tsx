@@ -127,6 +127,7 @@ const AccountInfor = forwardRef<HTMLDivElement, AccountInforProps>(({ userId, on
         setOriginalStatus(fetchedUser.status);
         setCurrentRole(fetchedUser.role);
         setCurrentStatus(fetchedUser.status);
+        return fetchedUser;
       } catch (error) {
         console.log(error);
         toast.error("Failed to fetch user data");
