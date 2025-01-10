@@ -92,7 +92,7 @@ const LoginPage = () => {
   const signinMutation = useMutation({
     mutationFn: (body: FormData) => authApi.login(body),
     onError: (error: AxiosError) => {
-      toast.error(error || "Something went wrong");
+      toast.error(error instanceof AxiosError ? error.message : "Something went wrong");
     },
     onSuccess: (response: ILoginUserRes) => {
       setToken(response.accessToken, response.refreshToken);
@@ -138,7 +138,7 @@ const LoginPage = () => {
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     if (signinMutation.isPending || getMeQuery.isFetching) return;
     signinMutation.mutate(data);
-    getMeQuery.refetch();
+    await getMeQuery.refetch();
   };
 
   if (auth != null) {

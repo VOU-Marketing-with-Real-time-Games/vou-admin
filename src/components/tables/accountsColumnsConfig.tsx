@@ -11,7 +11,7 @@ function renderRole(role: string) {
   return <Chip label={role} color={roleColors[role] || "default"} size="small" />;
 }
 
-function renderStatus(status: "ACTIVE" | "INACTIVE") {
+function renderStatus(status: "ACTIVE" | "INACTIVE" | "BANNED") {
   const colors: { [index: string]: "success" | "default" | "error" } = {
     ACTIVE: "success",
     INACTIVE: "default",
@@ -68,7 +68,7 @@ export const columns: GridColDef[] = [
     align: "center",
     headerAlign: "center",
     type: "singleSelect",
-    valueOptions: ["ENABLE", "DISABLE"],
+    valueOptions: ["ACTIVE", "INACTIVE", "BANNED"],
     filterOperators: getGridSingleSelectOperators().filter((operator) => operator.value === "is"),
     getApplyQuickFilterFn: undefined,
   },
@@ -81,5 +81,3 @@ export const columns: GridColDef[] = [
     getApplyQuickFilterFn: undefined,
   },
 ];
-
-

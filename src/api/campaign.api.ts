@@ -1,5 +1,5 @@
 import AxiosClient from "./client";
-import { ICampaignRequestDto, ICampaignRespondDto } from "../types/campaign.type.ts";
+import { ICampaignRequestDto, ICampaign } from "../types/campaign.type.ts";
 
 const PREFIX = "campaigns";
 const URL_GET_ALL = PREFIX;
@@ -13,18 +13,18 @@ const campaignApi = {
     const res = await AxiosClient.get(URL_GET_ALL);
     return res.data;
   },
-  getCampaignById: async (id: number): Promise<ICampaignRespondDto> => {
+  getCampaignById: async (id: number): Promise<ICampaign> => {
     const res = await AxiosClient.get(`${URL_GET_CAMPAIGN_BY_ID}/${id}`);
     return res.data;
   },
-  updateCampaign: async (id: number, campaignDto: ICampaignRequestDto): Promise<ICampaignRespondDto> => {
+  updateCampaign: async (id: number, campaignDto: ICampaign): Promise<ICampaign> => {
     const res = await AxiosClient.put(`${URL_UPDATE_CAMPAIGN}/${id}`, campaignDto);
     return res.data;
   },
   deleteCampaign: async (id: number): Promise<void> => {
     await AxiosClient.delete(`${URL_DELETE_CAMPAIGN}/${id}`);
   },
-  createCampaign: async (campaignDto: ICampaignRequestDto): Promise<ICampaignRespondDto> => {
+  createCampaign: async (campaignDto: ICampaignRequestDto): Promise<ICampaign> => {
     const res = await AxiosClient.post(URL_CREATE_CAMPAIGN, campaignDto);
     return res.data;
   },

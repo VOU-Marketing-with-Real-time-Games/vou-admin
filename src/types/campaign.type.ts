@@ -7,11 +7,12 @@ export interface ICampaignRequestDto {
   brandId: number;
 }
 
-export interface ICampaignRespondDto {
+export interface ICampaign {
   id: number;
   name: string;
   image: string;
   field: string;
+  description: string;
   startDate: string;
   endDate: string;
   status: string;

@@ -8,7 +8,7 @@ import {
   GridToolbarQuickFilter,
 } from "@mui/x-data-grid";
 import { columns as initialColumns } from "./campaignsColumnsConfig.tsx";
-import { ICampaignRespondDto } from "../../types/campaign.type.ts";
+import { ICampaign } from "../../types/campaign.type.ts";
 import campaignApi from "../../api/campaign.api";
 import { useQuery } from "@tanstack/react-query";
 import { getActionColumn } from "./ActionColumn";
@@ -24,14 +24,15 @@ declare module "@mui/x-data-grid" {
 export default function CampaignsDataGrid() {
   const [rows, setRows] = useState<GridRowsProp>([]);
   const [open, setOpen] = useState(false);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | number | null>(null);
 
   const handleOpen = (id: string | number) => {
-    console.log(id);
+    setSelectedCampaignId(id);
     setOpen(true);
   };
   const handleClose = () => setOpen(false);
 
-  const transformedRows = (campaigns: ICampaignRespondDto[]): GridRowsProp => {
+  const transformedRows = (campaigns: ICampaign[]): GridRowsProp => {
     return campaigns.map((campaign) => ({
       id: campaign.id,
       name: campaign.name,
@@ -47,7 +48,7 @@ export default function CampaignsDataGrid() {
     queryKey: ["campaigns"],
     queryFn: async () => {
       const data = await campaignApi.getAllCampaigns();
-      const campaigns: ICampaignRespondDto[] = data.content;
+      const campaigns: ICampaign[] = data.content;
       setRows(transformedRows(campaigns));
       return campaigns;
     },
@@ -79,7 +80,7 @@ export default function CampaignsDataGrid() {
           },
         }}
       >
-        <CampaignDetails />
+        {selectedCampaignId === null ? <div></div> : <CampaignDetails id={selectedCampaignId} />}
       </Modal>
       <DataGrid
         rowHeight={120}

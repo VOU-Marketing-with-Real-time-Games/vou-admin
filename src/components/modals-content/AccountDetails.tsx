@@ -108,7 +108,7 @@ const renderStatus = (
   );
 };
 
-const AccountInfor = forwardRef<HTMLDivElement, AccountInforProps>(({ userId, onSuccess }, ref) => {
+const AccountDetails = forwardRef<HTMLDivElement, AccountInforProps>(({ userId, onSuccess }, ref) => {
   const [user, setUser] = useState<IFullUser>();
   const [originalRole, setOriginalRole] = useState<string>("");
   const [originalStatus, setOriginalStatus] = useState<string>("");
@@ -244,6 +244,6 @@ const AccountInfor = forwardRef<HTMLDivElement, AccountInforProps>(({ userId, on
   );
 });
 
-AccountInfor.displayName = "AccountInfor";
+AccountDetails.displayName = "AccountInfor";
 
-export default AccountInfor;
+export default AccountDetails;

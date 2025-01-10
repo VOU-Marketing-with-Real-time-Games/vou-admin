@@ -2,12 +2,14 @@ import Chip from "@mui/material/Chip";
 import { getGridSingleSelectOperators, GridColDef } from "@mui/x-data-grid";
 import { format } from "date-fns";
 
-function renderStatus(status: "PENDING" | "ACTIVE" | "ENDED" | "REJECTED") {
-  const colors: { [index: string]: "primary" | "success" | "default" | "error" } = {
+function renderStatus(status: "PENDING" | "APPROVED" | "REJECTED" | "ACTIVE" | "COMPLETED" | "CANCELED") {
+  const colors: { [index: string]: "primary" | "success" | "default" | "error" | "warning" } = {
     PENDING: "primary",
+    APPROVED: "success",
     REJECTED: "error",
     ACTIVE: "success",
-    ENDED: "default",
+    COMPLETED: "default",
+    CANCELED: "warning",
   };
 
   return <Chip label={status} color={colors[status]} size="small" />;
@@ -67,18 +69,8 @@ export const columns: GridColDef[] = [
     align: "center",
     headerAlign: "center",
     type: "singleSelect",
-    valueOptions: ["PENDING", "ACTIVE", "ENDED", "REJECTED"],
+    valueOptions: ["PENDING", "APPROVED", "REJECTED", "ACTIVE", "COMPLETED", "CANCELED"],
     filterOperators: getGridSingleSelectOperators().filter((operator) => operator.value === "is"),
-    getApplyQuickFilterFn: undefined,
-  },
-  {
-    field: "brandId",
-    headerName: "Brand ID",
-    flex: 1,
-    minWidth: 100,
-    align: "center",
-    headerAlign: "center",
-    filterable: false,
     getApplyQuickFilterFn: undefined,
   },
 ];

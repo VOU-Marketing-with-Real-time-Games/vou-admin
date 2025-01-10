@@ -2,7 +2,6 @@ import React from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import path from "../../constants/paths";
-import toast from "react-hot-toast";
 
 function PrivateRoute() {
   const { auth } = React.useContext(AuthContext)!;
