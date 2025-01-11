@@ -13,7 +13,7 @@ import brandApi from "../../api/brand.api";
 import { getActionColumn } from "./ActionColumn";
 import { useQuery } from "@tanstack/react-query";
 import { Backdrop, Modal } from "@mui/material";
-import CampaignDetails from "../modals-content/CampaignDetails.tsx";
+import BranchList from "../modals-content/BranchList.tsx";
 
 declare module "@mui/x-data-grid" {
   interface ToolbarPropsOverrides {
@@ -24,9 +24,10 @@ declare module "@mui/x-data-grid" {
 export default function BrandsDataGrid() {
   const [rows, setRows] = useState<GridRowsProp>([]);
   const [open, setOpen] = useState(false);
+  const [selectedBrandId, setSelectedBrandId] = useState<string | number | null>(null);
 
   const handleOpen = (id: string | number) => {
-    console.log(id);
+    setSelectedBrandId(id);
     setOpen(true);
   };
   const handleClose = () => setOpen(false);
@@ -36,7 +37,6 @@ export default function BrandsDataGrid() {
       id: brand.id,
       name: brand.name,
       field: brand.field,
-      status: brand.status,
       enabled: brand.enabled,
       creator: brand.creator,
       createdAt: brand.createdAt,
@@ -66,6 +66,7 @@ export default function BrandsDataGrid() {
   return (
     <>
       <Modal
+        tabIndex={-1}
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
         open={open}
@@ -78,7 +79,7 @@ export default function BrandsDataGrid() {
           },
         }}
       >
-        <CampaignDetails />
+        {selectedBrandId === null ? <div></div> : <BranchList brandId={selectedBrandId} />}
       </Modal>
       <DataGrid
         rows={rows}
