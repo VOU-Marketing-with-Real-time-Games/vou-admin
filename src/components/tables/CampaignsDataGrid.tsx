@@ -44,7 +44,7 @@ export default function CampaignsDataGrid() {
     }));
   };
 
-  useQuery({
+  const { refetch } = useQuery({
     queryKey: ["campaigns"],
     queryFn: async () => {
       const data = await campaignApi.getAllCampaigns();
@@ -63,11 +63,17 @@ export default function CampaignsDataGrid() {
     );
   }
 
+  const handleModalUpdateSuccess = () => {
+    setOpen(false);
+    refetch();
+  };
+
   const columns = [...initialColumns, getActionColumn({ handleOpen })];
 
   return (
     <>
       <Modal
+        tabIndex={-1}
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
         open={open}
@@ -80,7 +86,11 @@ export default function CampaignsDataGrid() {
           },
         }}
       >
-        {selectedCampaignId === null ? <div></div> : <CampaignDetails id={selectedCampaignId} />}
+        {selectedCampaignId === null ? (
+          <div></div>
+        ) : (
+          <CampaignDetails id={selectedCampaignId} onSuccess={handleModalUpdateSuccess} />
+        )}
       </Modal>
       <DataGrid
         rowHeight={120}

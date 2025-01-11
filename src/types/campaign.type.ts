@@ -18,4 +18,5 @@ export interface ICampaign {
   status: string;
   createdAt: string;
   brandId: number;
+  note: string;
 }

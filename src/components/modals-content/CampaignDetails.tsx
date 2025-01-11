@@ -15,6 +15,7 @@ import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
 import { format } from "date-fns";
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -45,6 +46,7 @@ const Card = styled(MuiCard)(({ theme }) => ({
 
 interface CampaignDetailsProps {
   id: string | number;
+  onSuccess: () => void;
 }
 
 const renderStatus = (status: "PENDING" | "APPROVED" | "REJECTED" | "ACTIVE" | "COMPLETED" | "CANCELED") => {
@@ -64,8 +66,10 @@ const renderDate = (date: string) => {
   return format(new Date(date), "dd/MM/yyyy");
 };
 
-const CampaignDetails = forwardRef<HTMLDivElement, CampaignDetailsProps>(({ id }, ref) => {
+const CampaignDetails = forwardRef<HTMLDivElement, CampaignDetailsProps>(({ id, onSuccess }, ref) => {
   const [campaign, setCampaign] = useState<ICampaign | null>(null);
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [note, setNote] = useState("");
 
   useQuery({
     queryKey: ["get-campaign", id],
@@ -82,10 +86,10 @@ const CampaignDetails = forwardRef<HTMLDivElement, CampaignDetailsProps>(({ id }
   });
 
   const updateCampaignStatus = useMutation({
-    mutationFn: (status: string) => campaignApi.updateCampaign(Number(id), { ...campaign, status } as ICampaign),
+    mutationFn: (status: string) => campaignApi.updateCampaign(Number(id), { ...campaign, status, note } as ICampaign),
     onSuccess: () => {
       toast.success("Campaign status updated successfully");
-      setCampaign((prev) => (prev ? { ...prev, status } : prev));
+      onSuccess();
     },
     onError: () => {
       toast.error("Failed to update campaign status");
@@ -97,7 +101,20 @@ const CampaignDetails = forwardRef<HTMLDivElement, CampaignDetailsProps>(({ id }
   };
 
   const handleReject = () => {
+    setIsRejecting(true);
+  };
+
+  const handleConfirmReject = () => {
+    if (note.trim() === "") {
+      toast.error("Note is required");
+      return;
+    }
     updateCampaignStatus.mutate("REJECTED");
+  };
+
+  const handleCancelReject = () => {
+    setIsRejecting(false);
+    setNote("");
   };
 
   return (
@@ -138,31 +155,70 @@ const CampaignDetails = forwardRef<HTMLDivElement, CampaignDetailsProps>(({ id }
                     <TableCell sx={{ fontWeight: "bold", color: "primary" }}>Status</TableCell>
                     <TableCell>{renderStatus(campaign.status as any)}</TableCell>
                   </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: "bold", color: "primary" }}>Brand ID</TableCell>
-                    <TableCell>{campaign.brandId}</TableCell>
-                  </TableRow>
+                  {campaign.status === "REJECTED" && (
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: "bold", color: "primary" }}>Note</TableCell>
+                      <TableCell>{campaign.note}</TableCell>
+                    </TableRow>
+                  )}
+                  {isRejecting && (
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: "bold", color: "primary" }}>Note</TableCell>
+                      <TableCell>
+                        <TextField
+                          fullWidth
+                          required
+                          value={note}
+                          onChange={(e) => setNote(e.target.value)}
+                          placeholder="Enter rejection note"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>
             {campaign.status === "PENDING" && (
               <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, marginTop: 2 }}>
-                <Button
-                  variant="contained"
-                  color="error"
-                  sx={{ fontWeight: "bold", color: "whitesmoke" }}
-                  onClick={handleReject}
-                >
-                  REJECT
-                </Button>
-                <Button
-                  variant="contained"
-                  color="success"
-                  sx={{ fontWeight: "bold", color: "whitesmoke" }}
-                  onClick={handleApprove}
-                >
-                  APPROVE
-                </Button>
+                {isRejecting ? (
+                  <>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      sx={{ fontWeight: "bold", color: "whitesmoke" }}
+                      onClick={handleCancelReject}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="error"
+                      sx={{ fontWeight: "bold", color: "whitesmoke" }}
+                      onClick={handleConfirmReject}
+                    >
+                      Confirm
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="contained"
+                      color="error"
+                      sx={{ fontWeight: "bold", color: "whitesmoke" }}
+                      onClick={handleReject}
+                    >
+                      REJECT
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      sx={{ fontWeight: "bold", color: "whitesmoke" }}
+                      onClick={handleApprove}
+                    >
+                      APPROVE
+                    </Button>
+                  </>
+                )}
               </Box>
             )}
           </Box>
