@@ -2,7 +2,6 @@ import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart";
@@ -15,19 +14,20 @@ export type StatCardProps = {
   trend: "up" | "down" | "neutral";
   data: number[];
 };
-
-function getDaysInMonth(month: number, year: number) {
-  const date = new Date(year, month, 0);
-  const monthName = date.toLocaleDateString("en-US", {
-    month: "short",
-  });
-  const daysInMonth = date.getDate();
+function getLast30Days() {
   const days = [];
-  let i = 1;
-  while (days.length < daysInMonth) {
-    days.push(`${monthName} ${i}`);
-    i += 1;
+  const today = new Date();
+
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    const day = date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+    days.push(day);
   }
+
   return days;
 }
 
@@ -44,7 +44,7 @@ function AreaGradient({ color, id }: { color: string; id: string }) {
 
 export default function StatCard({ title, value, interval, trend, data }: StatCardProps) {
   const theme = useTheme();
-  const daysInWeek = getDaysInMonth(4, 2024);
+  const daysInWeek = getLast30Days();
 
   const trendColors = {
     up: theme.palette.mode === "light" ? theme.palette.success.main : theme.palette.success.dark,
@@ -52,15 +52,7 @@ export default function StatCard({ title, value, interval, trend, data }: StatCa
     neutral: theme.palette.mode === "light" ? theme.palette.grey[400] : theme.palette.grey[700],
   };
 
-  const labelColors = {
-    up: "success" as const,
-    down: "error" as const,
-    neutral: "default" as const,
-  };
-
-  const color = labelColors[trend];
   const chartColor = trendColors[trend];
-  const trendValues = { up: "+25%", down: "-25%", neutral: "+5%" };
 
   return (
     <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 }}>
@@ -74,7 +66,6 @@ export default function StatCard({ title, value, interval, trend, data }: StatCa
               <Typography variant="h4" component="p">
                 {value}
               </Typography>
-              <Chip size="small" color={color} label={trendValues[trend]} />
             </Stack>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
               {interval}

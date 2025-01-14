@@ -1,5 +1,6 @@
 import AxiosClient from "./client";
 import { IBrandRequestDto, IBrand } from "../types/brand.type.ts";
+import { StatCardProps } from "../components/cards/StatCard.tsx";
 
 const PREFIX = "brands";
 const URL_GET_ALL = PREFIX;
@@ -7,6 +8,7 @@ const URL_GET_BRAND_BY_ID = PREFIX;
 const URL_UPDATE_BRAND = PREFIX;
 const URL_DELETE_BRAND = PREFIX;
 const URL_CREATE_BRAND = PREFIX;
+const URL_GET_STATISTICS = PREFIX + "/statistics";
 
 const brandApi = {
   getAllBrands: async (): Promise<IBrand[]> => {
@@ -26,6 +28,10 @@ const brandApi = {
   },
   createBrand: async (brandDto: IBrandRequestDto): Promise<IBrand> => {
     const res = await AxiosClient.post(URL_CREATE_BRAND, brandDto);
+    return res.data;
+  },
+  getBrandStatistics: async (): Promise<StatCardProps> => {
+    const res = await AxiosClient.get(URL_GET_STATISTICS);
     return res.data;
   },
 };
