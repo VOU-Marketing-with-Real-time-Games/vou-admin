@@ -7,6 +7,7 @@ import CampaignsPage from "../pages/private/CampaignsPage.tsx";
 import BrandsPage from "../pages/private/BrandsPage.tsx";
 import PrivateRoute from "../layout/private/PrivateRoute.tsx";
 import LoginPage from "../pages/LoginPage.tsx";
+import GamePage from "../pages/private/GamePage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
               {
                 path: path.BRANDS,
                 element: <BrandsPage />,
+              },
+              {
+                path: path.GAME,
+                element: <GamePage />,
               },
             ],
           },

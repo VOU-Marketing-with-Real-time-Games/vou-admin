@@ -4,6 +4,7 @@ const path = {
   CAMPAIGNS: "/campaigns",
   BRANDS: "/brands",
   LOGIN: "/login",
+  GAME: "/game",
 };
 
 export default path;

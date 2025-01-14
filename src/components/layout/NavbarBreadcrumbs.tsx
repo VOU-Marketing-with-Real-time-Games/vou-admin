@@ -20,6 +20,8 @@ const pathNames = {
   [paths.HOME]: "Home",
   [paths.ACCOUNTS]: "Accounts",
   [paths.CAMPAIGNS]: "Campaigns",
+  [paths.BRANDS]: "Brands",
+  [paths.GAME]: "Game",
 };
 
 export default function NavbarBreadcrumbs() {
