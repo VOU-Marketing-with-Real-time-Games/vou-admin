@@ -22,7 +22,7 @@ function getDaysInMonth(month: number, year: number) {
   const monthName = date.toLocaleDateString("en-US", {
     month: "short",
   });
-  const daysInMonth = date.getDate();
+  const daysInMonth = 16;
   const days = [];
   let i = 1;
   while (days.length < daysInMonth) {
@@ -34,7 +34,7 @@ function getDaysInMonth(month: number, year: number) {
 
 export default function SessionsChart() {
   const theme = useTheme();
-  const data = getDaysInMonth(4, 2024);
+  const data = getDaysInMonth(1, 2025);
 
   const colorPalette = [theme.palette.primary.light, theme.palette.primary.main, theme.palette.primary.dark];
 
@@ -72,40 +72,37 @@ export default function SessionsChart() {
           series={[
             {
               id: "direct",
-              label: "Direct",
+              label: "APPPROVED",
               showMark: false,
               curve: "linear",
               stack: "total",
               area: true,
               stackOrder: "ascending",
               data: [
-                300, 900, 600, 1200, 1500, 1800, 2400, 2100, 2700, 3000, 1800, 3300, 3600, 3900, 4200, 4500, 3900, 4800,
-                5100, 5400, 4800, 5700, 6000, 6300, 6600, 6900, 7200, 7500, 7800, 8100,
+                1, 0, 0, 1, 0, 2, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0,
               ],
             },
             {
               id: "referral",
-              label: "Referral",
+              label: "ACTIVE",
               showMark: false,
               curve: "linear",
               stack: "total",
               area: true,
               stackOrder: "ascending",
               data: [
-                500, 900, 700, 1400, 1100, 1700, 2300, 2000, 2600, 2900, 2300, 3200, 3500, 3800, 4100, 4400, 2900, 4700,
-                5000, 5300, 5600, 5900, 6200, 6500, 5600, 6800, 7100, 7400, 7700, 8000,
+                2, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1,
               ],
             },
             {
               id: "organic",
-              label: "Organic",
+              label: "REJECTED",
               showMark: false,
               curve: "linear",
               stack: "total",
               stackOrder: "ascending",
               data: [
-                1000, 1500, 1200, 1700, 1300, 2000, 2400, 2200, 2600, 2800, 2500, 3000, 3400, 3700, 3200, 3900, 4100,
-                3500, 4300, 4500, 4000, 4700, 5000, 5200, 4800, 5400, 5600, 5900, 6100, 6300,
+                0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0
               ],
               area: true,
             },

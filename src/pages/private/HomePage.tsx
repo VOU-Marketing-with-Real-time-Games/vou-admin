@@ -5,12 +5,34 @@ import { Box } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import StatCard, { StatCardProps } from "../../components/cards/StatCard.tsx";
-import GamePieChart from "../../components/charts/GamePieChart.tsx";
 import SessionsChart from "../../components/charts/SessionsChart.tsx";
 import userApi from "../../api/user.api";
 import campaignApi from "../../api/campaign.api";
 import brandApi from "../../api/brand.api.ts";
 
+const data: StatCardProps[] = [
+  {
+    title: "Voucher",
+    value: "16",
+    interval: "Last 14 days",
+    trend: "up",
+    data: [0, 0, 1, 1, 1, 2, 3, 3, 2, 1, 1, 0, 1, 0],
+  },
+  {
+    title: "Puzzle",
+    value: "15",
+    interval: "Last 14 days",
+    trend: "down",
+    data: [0, 0, 0, 0, 1, 2, 2, 0, 1, 3, 0, 2, 3, 1],
+  },
+  {
+    title: "Game play",
+    value: "35",
+    interval: "Last 14 days",
+    trend: "neutral",
+    data: [0, 1, 2, 3, 5, 3, 5, 4, 3, 1, 1, 2, 2, 3],
+  },
+];
 const HomePage = () => {
   const [userData, setUserData] = useState<StatCardProps | null>(null);
   const [campaignData, setCampaignData] = useState<StatCardProps | null>(null);
@@ -60,9 +82,11 @@ const HomePage = () => {
               <StatCard {...brandData} />
             </Grid>
           )}
-          <Grid size={12}>
-            <SessionsChart />
-          </Grid>
+          {data.map((card, index) => (
+            <Grid key={index} size={{ lg: 4 }}>
+              <StatCard {...card} />
+            </Grid>
+          ))}
         </Grid>
       </Box>
     </DocumentMeta>
